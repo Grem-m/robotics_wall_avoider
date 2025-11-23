@@ -1,0 +1,5 @@
+wall_avoider:
+  ros__parameters:
+    avoidance_threshold: 0.3 # meters
+    maximum_speed: 6.28  # m/s
+    turning_speed: 0.5 #rad/s
