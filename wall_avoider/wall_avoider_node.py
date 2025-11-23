@@ -11,31 +11,32 @@ class WallAvoider(Node):
         self.declare_parameter('avoidance_threshold', 0.3)
         self.declare_parameter('maximum_speed', 6.28)
         self.declare_parameter('turning_speed', 0.5)
+        self.get_logger().debug(f"parameters retrieved from file (I hope): \n{self.get_parameter('avoidance_threshold').value} \n{self.get_parameter('maximum_speed').value} \n{self.get_parameter("turning_speed").value}")
 
         # Get parameters
-        avoidance_threshold = self.get_parameter('avoidance_threshold').value
-        maximum_speed = self.get_parameter('maximum_speed').value
-        turning_speed = self.get_parameter('turning_speed').value
+        self.avoidance_threshold = self.get_parameter('avoidance_threshold').value
+        self.maximum_speed = self.get_parameter('maximum_speed').value
+        self.turning_speed = self.get_parameter('turning_speed').value
+        self.get_logger().debug(f"parameters retrieved from file (I hope): \n{self.avoidance_threshold} \n{self.maximum_speed} \n{self.turning_speed}")
+
+        # declare sensor value array
+        self.sensor_array = (0, 0, 0)
+
+        # publisher
+        self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 5)
 
         # Subscription to sensor data
         self.sensor0_subscription = self.create_subscription(
             FloatStamped,
-            '/distance_sensor_0',
-            self.front_sensor_callback,
+            '/ps7',
+            self.side_sensor_1_callback,
             10
         )
 
         self.sensor1_subscription = self.create_subscription(
             FloatStamped,
-            '/distance_sensor_1',
-            self.front_sensor_callback,
-            10
-        )
-
-        self.sensor2_subscription = self.create_subscription(
-            FloatStamped,
-            '/distance_sensor_2',
-            self.front_sensor_callback,
+            '/ps0',
+            self.side_sensor_2_callback,
             10
         )
         
@@ -45,20 +46,32 @@ class WallAvoider(Node):
             '/cmd_vel',
             10
         )
-        
-        self.get_logger().info('Wall avoider node started')
-    
-    def front_sensor_callback(self, msg):
-        # Simple wall avoidance logic
-        cmd_vel = Twist()
-        
-        if min(msg.FloatStamped) < self.avoidance_threshold:  # 30cm threshold
 
-            cmd_vel.angular.z = self.turning_speed  # Turn right
-        else:
-            cmd_vel.linear.x = self.maximum_speed   # Move forward
-        
-        self.cmd_pub.publish(cmd_vel)
+        #TODO: Create timer
+        timer_period = 0.5
+        self.timer = self.create_timer(timer_period, self.control_callback)
+
+        self.get_logger().info('Wall avoider node started')
+
+    def side_sensor_1_callback(self, msg):
+        # TODO: check which sensor this is
+        self.sensor_array[0] = msg.data
+        pass
+
+    def side_sensor_2_callback(self, msg):
+        # TODO: check which sensor this is
+        self.sensor_array[1] = msg.data
+        pass
+
+    def control_callback(self):
+        # TODO: implement wall avoidance logic using sensor array
+        # test message for now
+        twist_msg = Twist()
+        twist_msg.linear.x = self.maximum_speed
+        twist_msg.angular.z = self.turning_speed
+        self.publisher_.publish(twist_msg)
+        self.get_logger().info(f'Publishing: linear.x={twist_msg.linear.x}, angular.z={twist_msg.angular.z}')
+        pass
 
 def main():
     rclpy.init()
