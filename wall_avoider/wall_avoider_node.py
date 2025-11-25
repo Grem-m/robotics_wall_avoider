@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import TwistStamped
 from webots_ros2_msgs.msg import FloatStamped
 
 class WallAvoider(Node):
@@ -23,7 +23,7 @@ class WallAvoider(Node):
         self.sensor_array = (0, 0, 0)
 
         # publisher
-        self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 5)
+        self.publisher_ = self.create_publisher(TwistStamped, 'cmd_vel', 5)
 
         # Subscription to sensor data
         self.sensor0_subscription = self.create_subscription(
@@ -42,7 +42,7 @@ class WallAvoider(Node):
         
         # Publisher for movement commands
         self.cmd_pub = self.create_publisher(
-            Twist,
+            TwistStamped,
             '/cmd_vel',
             10
         )
@@ -66,11 +66,11 @@ class WallAvoider(Node):
     def control_callback(self):
         # TODO: implement wall avoidance logic using sensor array
         # test message for now
-        twist_msg = Twist()
-        twist_msg.linear.x = self.maximum_speed
-        twist_msg.angular.z = self.turning_speed
+        twist_msg = TwistStamped()
+        twist_msg.twist.linear.x = self.maximum_speed
+        twist_msg.twist.angular.z = self.turning_speed
         self.publisher_.publish(twist_msg)
-        self.get_logger().info(f'Publishing: linear.x={twist_msg.linear.x}, angular.z={twist_msg.angular.z}')
+        self.get_logger().info(f'Publishing: linear.x={twist_msg.twist.linear.x}, angular.z={twist_msg.twist.angular.z}')
         pass
 
 def main():
