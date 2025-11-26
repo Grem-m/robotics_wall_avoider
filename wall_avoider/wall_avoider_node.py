@@ -20,10 +20,10 @@ class WallAvoider(Node):
         self.get_logger().debug(f"parameters retrieved from file (I hope): \n{self.avoidance_threshold} \n{self.maximum_speed} \n{self.turning_speed}")
 
         # declare sensor value array
-        self.sensor_array = (0, 0, 0)
+        self.sensor_array = [0.0, 0.0, 0.0]
 
-        # publisher
-        self.publisher_ = self.create_publisher(TwistStamped, 'cmd_vel', 5)
+        # publisher (we publish globally on /cmd_vel so it reaches the diffdrive controller)
+        self.cmd_pub = self.create_publisher(TwistStamped, '/cmd_vel', 10)
 
         # Subscription to sensor data
         self.sensor0_subscription = self.create_subscription(
@@ -40,12 +40,7 @@ class WallAvoider(Node):
             10
         )
         
-        # Publisher for movement commands
-        self.cmd_pub = self.create_publisher(
-            TwistStamped,
-            '/cmd_vel',
-            10
-        )
+        # Publisher for movement commands already created above as self.cmd_pub
 
         #TODO: Create timer
         timer_period = 0.5
@@ -69,7 +64,7 @@ class WallAvoider(Node):
         twist_msg = TwistStamped()
         twist_msg.twist.linear.x = self.maximum_speed
         twist_msg.twist.angular.z = self.turning_speed
-        self.publisher_.publish(twist_msg)
+        self.cmd_pub.publish(twist_msg)
         self.get_logger().info(f'Publishing: linear.x={twist_msg.twist.linear.x}, angular.z={twist_msg.twist.angular.z}')
         pass
 
